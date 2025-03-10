@@ -15,8 +15,7 @@ $(document).ready(function () {
             attachTooltips();
             clearInterval(tooltipTimer);
         }        
-    }, 50);
-       
+    }, 50);       
 
     $canvas.off('dblclick', '.activity').on('dblclick', '.activity', e => {
         e.preventDefault();
@@ -24,8 +23,9 @@ $(document).ready(function () {
     });
 
     docLoaded = true;
-
 });
+
+// new modal dialog button handlers:
 
 $(document).on('click', "#btn-close-wf-edit-modal", function (e) {
     var $modal = $("#wf-edit-modal");
@@ -33,8 +33,7 @@ $(document).on('click', "#btn-close-wf-edit-modal", function (e) {
 });
 
 $(document).on('click', "#btn-save-wf-edit-modal", function (e) {
-
-    // find form in iframe, submit..
+    
     var $form = $("#wf-iframe").contents().find("form");
     var actionUrl = $form.attr('action');
     const activityId = $form.find('input[type="hidden"][name="ActivityId"]').val();
@@ -60,7 +59,7 @@ $(document).on('click', "#btn-save-wf-edit-modal", function (e) {
                 removeActionButtons();
             }
             else {
-                // validation okay: trigger event in parent document for further processing
+                // validation okay, trigger iframeSubmitted-event in parent document for further processing:
                 var w = window;
                 w.parent.jQuery(w.parent.document).trigger('iframeSubmitted', [dataResult, activityId, actionUrl, docResult]);
             }
@@ -82,6 +81,7 @@ $(document).on('iframeSubmitted', function (e, data, activityId, actionUrl, doc)
         reloadWithLocalId();
     }
     else {
+        // activiy has been edited, extract elements from result by activityId and update document:
         const result = doc.querySelector(`#${targetId}`);
         if (result) {
             if (newElement) {
@@ -91,15 +91,22 @@ $(document).on('iframeSubmitted', function (e, data, activityId, actionUrl, doc)
                 }
             }
         }
+        updateActivityOutcomes(doc, targetId, activityId);    
     }
-    
+
+    var $modal = $("#wf-edit-modal");
+    $modal.modal('hide');
+}); 
+
+
+function updateActivityOutcomes(doc, targetId, activityId) {
     var activityElement = doc.querySelector(`#${targetId}`);
     var activity = workflowEditor.getActivity(activityId);
 
     const $resultCanvas = $(doc.querySelector(".workflow-canvas"));
-    var resultData = $resultCanvas.data("workflow-type");    
+    var resultData = $resultCanvas.data("workflow-type");
 
-    const activityToUpdateFrom = resultData.activities.find(a => a.id === activity.id);    
+    const activityToUpdateFrom = resultData.activities.find(a => a.id === activity.id);
 
     if (hasOutcomesChanged(activity, activityToUpdateFrom)) {
 
@@ -114,15 +121,11 @@ $(document).on('iframeSubmitted', function (e, data, activityId, actionUrl, doc)
         });
 
         workflowEditor.jsPlumbInstance.repaint(activityElement);
-        
+
         attachTooltipToEndpoints(workflowEditor.jsPlumbInstance.getEndpoints(activityElement));
         $(".jtk-endpoint").tooltip();
-    }    
-
-    var $modal = $("#wf-edit-modal");
-    $modal.modal('hide');
-}); 
-
+    }
+}
 
 function hasOutcomesChanged(activity, activityToUpdateFrom) {
     if (!activity || !activity.outcomes || !activityToUpdateFrom || !activityToUpdateFrom.outcomes) {        
@@ -140,21 +143,6 @@ function hasOutcomesChanged(activity, activityToUpdateFrom) {
         }
     }
     return false;
-}
-
-function reloadScript(scriptNameFragment) {
-    const existingScripts = Array.from(document.querySelectorAll('script[src]'))
-        .filter(script => script.src.includes(scriptNameFragment));
-
-    existingScripts.forEach(script => script.remove());
-
-    const scriptPaths = existingScripts.map(script => script.src);
-
-    scriptPaths.forEach(scriptPath => {
-        const newScript = document.createElement('script');
-        newScript.src = scriptPath;
-        document.head.appendChild(newScript);
-    });
 }
 
 function attachTooltips() {
