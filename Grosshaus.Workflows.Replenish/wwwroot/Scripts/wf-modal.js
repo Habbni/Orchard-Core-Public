@@ -204,7 +204,16 @@ function removeActionButtons() {
 $iframe.on('load', function () {
     removeActionButtons();
     toggleSpinner(false);
-    $iframe.show();
+
+    // check if result is activity editor by inspecting body:
+    const iframeDoc = $iframe[0].contentDocument || $iframe[0].contentWindow.document;
+    const $div = $(iframeDoc).find('body > div[data-workflow-type-id][data-activity-id]');
+
+    // show iframe if yes, close/reload otherwise because it´s some parameterless activity:
+    if ($div.length > 0)
+        $iframe.show();
+    else
+        reloadWithLocalId();
 });
 
 $("#activity-picker a[data-persist-workflow]").on('click', function (e) {
