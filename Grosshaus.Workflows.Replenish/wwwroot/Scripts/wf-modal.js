@@ -4,28 +4,17 @@ var workflowEditor;
 var $iframe = $("#wf-iframe");
 
 $(document).ready(function () {
-
     $canvas = $('.workflow-canvas');
     workflowType = $canvas.data('workflow-type');
     workflowEditor = $canvas.data('workflowEditor');   
 
-    // defer tooltips, dont attach them before oc has initialized jsPlumpInstance:
-    var tooltipTimer = setInterval(() => {
-        if (workflowEditor.jsPlumbInstance != null) {            
-            attachTooltips();
-            clearInterval(tooltipTimer);
-        }        
-    }, 50);       
+    $(workflowEditor).on('jsPlumbInstanceReady', attachTooltips());    
 
     $canvas.off('dblclick', '.activity').on('dblclick', '.activity', e => {
         e.preventDefault();
         showModal($(e.currentTarget).find('.activity-edit-action').attr("href"));
     });
-
-    docLoaded = true;
 });
-
-// new modal dialog button handlers:
 
 $(document).on('click', "#btn-close-wf-edit-modal", function (e) {
     var $modal = $("#wf-edit-modal");
@@ -33,7 +22,11 @@ $(document).on('click', "#btn-close-wf-edit-modal", function (e) {
 });
 
 $(document).on('click', "#btn-save-wf-edit-modal", function (e) {
-    
+    e.preventDefault();
+    handleFormSubmission();
+});
+
+function handleFormSubmission() {
     var $form = $("#wf-iframe").contents().find("form");
     var actionUrl = $form.attr('action');
     const activityId = $form.find('input[type="hidden"][name="ActivityId"]').val();
@@ -66,7 +59,7 @@ $(document).on('click', "#btn-save-wf-edit-modal", function (e) {
 
         }
     })
-});
+}
 
 $(document).on('iframeSubmitted', function (e, data, activityId, actionUrl, doc) {
      //iframe ajax form post triggered this, replace activity or reload page depending on add or edit

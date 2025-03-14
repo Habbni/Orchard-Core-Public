@@ -2,6 +2,7 @@
 using OrchardCore.DisplayManagement.Layout;
 using OrchardCore.DisplayManagement;
 using OrchardCore.DisplayManagement.Razor;
+using OrchardCore.Workflows.Controllers;
 
 namespace Grosshaus.Workflows.Replenish
 {
@@ -31,11 +32,11 @@ namespace Grosshaus.Workflows.Replenish
                 }
             }
             else if (context.ActionDescriptor.RouteValues["Controller"] == "Activity")
-                // remove theme from activity editor to allow for displaying it in modal dlg
+                // use custom layout (with only bare style and script minimum) for activity editor, for displaying it in a modal:
                 if (context.ActionDescriptor.RouteValues["Action"] == "Edit" || (context.ActionDescriptor.RouteValues["Action"] == "Create"))
                 {
                     var razorViewFeature = context.HttpContext.Features.Get<RazorViewFeature>();
-                    razorViewFeature.ThemeLayout.Metadata.Type = "wfEmpty"; // alternatively use existing "Layout__Login"
+                    razorViewFeature.ThemeLayout.Metadata.Type = "LayoutModal"; // alternatively use existing "Layout__Login"
                 }
 
             await next.Invoke();
